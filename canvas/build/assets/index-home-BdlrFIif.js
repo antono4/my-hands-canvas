@@ -1,0 +1,1 @@
+import{j as e}from"./vendor~entry.client~root~root-layout~index-home~home~conversation-panel~conversation~launch~i58xkef6-cHFhpUBq.js";import{t}from"./home-DIsB440S.js";import{n}from"./use-pinned-home-route-CckOZrmb.js";var r=()=>{let t=n();return t?e(t):null};export{r as clientLoader,t as default};
