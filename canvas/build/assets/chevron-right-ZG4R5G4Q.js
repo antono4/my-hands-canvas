@@ -1,0 +1,1 @@
+import{D as e}from"./vendor~entry.client~root~root-layout~index-home~home~conversation-panel~conversation~launch~czjee3a3-DqZDXfg2.js";var t=e(`chevron-right`,[[`path`,{d:`m9 18 6-6-6-6`,key:`mthhwq`}]]);export{t};

@@ -1,39 +1,54 @@
 # my-hands-canvas
 
-Self-hosted [OpenHands Agent Canvas](https://docs.openhands.dev/openhands/usage/agent-canvas/) deployment for [antonockr1](https://github.com/antono4).
+Self-hosted [OpenHands Agent Canvas](https://docs.openhands.dev/openhands/usage/agent-canvas/) deployment untuk [antonockr1](https://github.com/antono4).
 
-## What's deployed
+## Yang ada di repo ini
 
-| URL | Service |
+Semua file untuk kedua layanan (Host 1 dan Host 2) sekarang **ada di repository ini** — jadi kapan pun runtime-nya hidup kembali, stack-nya bisa langsung dijalankan dari sini:
+
+| Path | Isi |
 | --- | --- |
-| `https://work-1-aftnxdqtpgjwydap.prod-runtime.all-hands.dev/` | Agent Canvas UI (port 12000, backend ingress) |
-| `https://work-2-aftnxdqtpgjwydap.prod-runtime.all-hands.dev/` | Agent Canvas UI (port 12001, static frontend) |
+| `canvas/build/` | **Frontend statis Agent Canvas** — SPA OpenHands yang tadinya disajikan di port 12001 (build resmi `@openhands/agent-canvas@1.16.0`) |
+| `canvas/scripts/` | **Launcher + reverse-proxy** — `static-server.mjs` (serve SPA + proxy `/api`, `/sockets`, `/server_info` ke backend), `ingress.mjs`, `dev-*.mjs` |
+| `canvas/bin/` | CLI `agent-canvas` (untuk `--backend-only`) |
+| `canvas/config/` | `defaults.json` — versi pin, port, path (agent-server 1.44.0, automation 1.9.0) |
+| `canvas/tools/` | Utilitas pendukung dari package resmi |
+| `index.html` | Landing page bergaya app.all-hands.dev (menauta ke kedua host) |
+| `start-canvas.sh` | Bootstrap launcher — menjalankan kedua service dari repo ini |
 
-The stack runs:
+## Arsitektur stack (port asli)
 
-- **Agent Server** (OpenHands SDK v1.44.x) on `127.0.0.1:19000` — chat/agent API (`/api`, `/sockets`, `/server_info`, …)
-- **Automation backend** on `127.0.0.1:19001` — `/api/automation/*`
-- **Ingress proxy** on port **12000** (work-host 1) — routes API prefixes to the backend
-- **Static frontend** on port **12001** (work-host 2) — serves the prebuilt Canvas UI and proxies API paths to the backend
+| URL | Service | Port |
+| --- | --- | --- |
+| Host 1 (`work-1`) | **Ingress proxy** → agent-server + automation | `12000` |
+| Host 2 (`work-2`) | **Static frontend** (Canvas SPA + API proxy) | `12001` |
+| (internal) | Agent Server (OpenHands SDK `v1.44.x`) | `127.0.0.1:19000` |
+| (internal) | Automation backend | `127.0.0.1:19001` |
 
-Both services are exposed publicly through the two work hosts; the frontend auto-injects the session API key so no login is needed.
+Kedua service itu membaca API key dari `~/.openhands/agent-canvas/api-key.txt` pada runtime — **tidak ada secret di repo ini**.
 
-## Restart
+## Menjalankan dari repo ini
 
 ```bash
-# 1. Backend stack (agent-server + automation + ingress on 12000)
-OH_CANVAS_SAFE_BACKEND_PORT=19000 \
-OH_CANVAS_SAFE_AUTOMATION_PORT=19001 \
-OH_CANVAS_SAFE_STATE_DIR="$HOME/.openhands/agent-canvas" \
-  agent-canvas --backend-only --port 12000 --host 0.0.0.0
+# 1. Cepat (launcher otomatis install deps + start kedua service)
+./start-canvas.sh full
 ```
 
 ```bash
-# 2. Static UI (port 12001)
-cd /tmp && node /tmp/static-launch.mjs
+# 2. Hanya frontend statis (Host 2, port 12001)
+./start-canvas.sh ui
 ```
+
+```bash
+# 3. Hanya backend + ingress (Host 1, port 12000)
+./start-canvas.sh backend
+```
+
+Persyaratan: Node ≥ 22, dan untuk mode `backend`/`full` juga `agent-canvas` CLI (install: `npm install -g @openhands/agent-canvas@1.16.0`).
 
 ## Notes
 
-- The static launcher reads the session API key from `~/.openhands/agent-canvas/api-key.txt` at runtime — no secret is stored in this repository.
-- LLM profiles are stored encrypted at `~/.openhands/profiles/*.json` under the user's home directoryand are decrypted with the persisted `OH_SECRET_KEY` (see `scripts/static-launch.mjs` and the launcher's `secret-key.txt`).
+- `start-canvas.sh` membaca API key dari `~/.openhands/agent-canvas/api-key.txt` pada runtime — **tidak ada secret di repo ini**.
+- Frontend yang disalin ke `canvas/build/` adalah build resmi dari `@openhands/agent-canvas@1.16.0` (MIT); bisa diperbarui dengan `npm pack @openhands/agent-canvas` dan mengganti foldernya).
+- Runtime deps (`sirv` + `httpxy`) di-install otomatis ke `canvas/node_modules/` saat `./start-canvas.sh ui` pertama dijalankan (git-ignored).
+- LLM profiles tersimpan terenkripsi di `~/.openhands/profiles/*.json` and didekripsi dengan `OH_SECRET_KEY` (lihat `canvas/scripts/dev-safe.mjs`).

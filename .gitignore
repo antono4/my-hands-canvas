@@ -2,3 +2,7 @@
 api-key.txt
 secret-key.txt
 .env
+
+# Canvas runtime deps (installed on demand by start-canvas.sh)
+canvas/node_modules/
+canvas/.deps-tmp/
