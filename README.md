@@ -1,1 +1,26 @@
-Last updated: 2026-10-31 12:34:07 WIB
+# my-hands-canvas
+
+
+
+## 📋 Overview
+
+This repository contains **51 files** and is built with the following technologies:
+
+HTML
+
+## 🚀 Quick Start
+
+## ✨ Features
+
+- 📝 Auto-generated documentation
+
+## 🛠️ Technologies
+
+HTML
+
+## 📄 License
+
+MIT License
+
+---
+*Last updated: 2026-10-31 12:36:47 WIB*
